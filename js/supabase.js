@@ -24,3 +24,4 @@ const supabaseClient = window.supabase.createClient(
 );
 
 window.EMESupabase = supabaseClient;
+window.EMESupabaseConfig = { url: SUPABASE_URL };

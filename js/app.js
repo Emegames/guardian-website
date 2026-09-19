@@ -2,13 +2,12 @@ const BASE = window.location.pathname.includes('/pages/') || window.location.pat
 
 const games = [
   { id: 'guardian', name: 'Guardian', tag: 'Aventura cooperativa', status: 'En desarrollo', image: `${BASE}assets/images/guardian-art.png`, description: 'Una aventura cooperativa independiente.' },
-  { id: 'future-01', name: 'Proyecto 02', tag: 'Próximamente', status: 'Concepto', image: `${BASE}assets/images/guardian-art.png`, description: 'Un nuevo proyecto de EME GAMES.' }
+  { id: 'future-01', name: 'Próximamente', tag: 'Nuevo proyecto de EME GAMES', status: 'Próximamente', image: `${BASE}assets/images/logo_proyecto02.jfif`, description: 'Un nuevo proyecto de EME GAMES.' }
 ];
 
 const news = [
   { id: 'guardian-dev', title: 'Guardian continúa su desarrollo', summary: 'Nuevas mejoras y avances del proyecto.', date: 'Próximamente', image: `${BASE}assets/images/guardian-art.png` },
-  { id: 'studio', title: 'EME GAMES: un estudio independiente', summary: 'Conoce la visión detrás del estudio.', date: 'Próximamente', image: `${BASE}assets/images/guardian-art.png` },
-  { id: 'roadmap', title: 'Lo que viene para el proyecto', summary: 'Una mirada breve a las próximas etapas.', date: 'Próximamente', image: `${BASE}assets/images/guardian-art.png` }
+  { id: 'roadmap', title: 'Lo que viene para el proyecto', summary: 'Una mirada breve a las próximas etapas.', date: 'Próximamente', image: `${BASE}assets/images/logo_enmedio.jfif` }
 ];
 
 const NAV_LINKS = [

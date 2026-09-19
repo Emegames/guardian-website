@@ -87,20 +87,56 @@
 
     if (verified) {
       button.textContent = "Descargar juego";
-      button.href = "https://github.com/Emegames/guardian-website/releases/latest/download/Guardian-Windows.zip";
+      button.type = "button";
       button.classList.add("button-primary");
       button.classList.remove("button-ghost");
       button.removeAttribute("data-requires-account");
-      button.target = "_blank";
-      button.rel = "noopener";
+      button.removeAttribute("href");
+      setupDownloadSupportModal(button);
     } else {
       button.textContent = "Crear cuenta para descargar";
-      button.href = "registro.html";
+      button.type = "button";
       button.classList.add("button-primary");
       button.removeAttribute("target");
       button.removeAttribute("rel");
+      button.removeAttribute("href");
       button.setAttribute("data-requires-account", "true");
+      button.onclick = () => { window.location.href = "registro.html"; };
     }
+  }
+
+  function setupDownloadSupportModal(button) {
+    if (button.dataset.downloadModalReady === "true") return;
+    const modal = document.querySelector("[data-download-support-modal]");
+    if (!modal) return;
+    const image = modal.querySelector("[data-support-image]");
+    const closeButtons = modal.querySelectorAll("[data-support-close]");
+    const donateButton = modal.querySelector("[data-support-donate]");
+    const normalImage = "../assets/images/logo_donacion.jfif";
+    const hoverImage = "../assets/images/logo_donacionsi.jfif";
+
+    const close = () => {
+      modal.hidden = true;
+      modal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+      if (image) image.src = normalImage;
+    };
+    const open = () => {
+      modal.hidden = false;
+      modal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+      if (image) image.src = normalImage;
+    };
+
+    button.onclick = open;
+    button.dataset.downloadModalReady = "true";
+    closeButtons.forEach(el => el.addEventListener("click", close));
+    document.addEventListener("keydown", event => { if (event.key === "Escape" && !modal.hidden) close(); });
+    donateButton?.addEventListener("mouseenter", () => { if (image) image.src = hoverImage; });
+    donateButton?.addEventListener("mouseleave", () => { if (image) image.src = normalImage; });
+    donateButton?.addEventListener("focus", () => { if (image) image.src = hoverImage; });
+    donateButton?.addEventListener("blur", () => { if (image) image.src = normalImage; });
+    donateButton?.addEventListener("click", () => { window.location.href = "donar.html"; });
   }
 
   async function register() {
