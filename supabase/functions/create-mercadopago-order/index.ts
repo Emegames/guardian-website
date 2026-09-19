@@ -113,11 +113,11 @@ Deno.serve(async (req) => {
           token,
           installments,
         },
-        payer: {
-          email: payerEmail,
-          ...(payer.identification ? { identification: payer.identification } : {}),
-        },
       }],
+    },
+    payer: {
+      email: payerEmail,
+      ...(payer.identification ? { identification: payer.identification } : {}),
     },
   };
 
