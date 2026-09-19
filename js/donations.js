@@ -1,65 +1,96 @@
 (function () {
   const supabase = window.EMESupabase;
-  const form = document.querySelector('[data-donation-form]');
-  if (!form || !supabase) return;
-
+  const form = document.querySelector('[data-donation-amount-form]');
+  const paymentSection = document.querySelector('[data-card-payment-section]');
+  const amountInput = document.querySelector('[name="amount"]');
   const status = document.querySelector('[data-donation-status]');
-  const amount = form.querySelector('[name="amount"]');
-  const MIN_AMOUNT = 0.01;
-  const MAX_AMOUNT = 10000000;
+  const summary = document.querySelector('[data-payment-summary]');
+  const changeButton = document.querySelector('[data-change-amount]');
+  if (!form || !paymentSection || !amountInput || !supabase) return;
 
-  function parseDonationAmount(value) {
-    const normalized = String(value ?? '').replace(/,/g, '').trim();
-    if (!normalized) return NaN;
-    const parsed = Number(normalized);
-    if (!Number.isFinite(parsed)) return NaN;
-    return Math.round((parsed + Number.EPSILON) * 100) / 100;
-  }
-  const button = form.querySelector('button[type="submit"]');
+  let amount = null;
+  let brick = null;
+  let reference = null;
 
-  function showStatus(message, type = 'info') {
+  const money = (n) => Number(n).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  function show(message, type='info') {
     if (!status) return;
     status.textContent = message;
-    status.className = `notice donation-status ${type}`;
+    status.className = 'notice donation-status ' + type;
     status.hidden = false;
   }
+  async function unmount() {
+    if (brick) { try { await brick.unmount(); } catch (_) {} brick = null; }
+    const container = document.getElementById('cardPaymentBrick_container');
+    if (container) container.innerHTML = '';
+  }
+  async function renderBrick() {
+    const publicKey = window.EMEMercadoPagoConfig?.publicKey;
+    if (!publicKey || publicKey === 'REEMPLAZA_CON_TU_PUBLIC_KEY') throw new Error('Falta configurar la Public Key de Mercado Pago.');
+    if (!window.MercadoPago) throw new Error('No se pudo cargar Mercado Pago.js.');
+    await unmount();
+    const mp = new MercadoPago(publicKey, { locale: 'es-MX' });
+    reference = 'donation-' + crypto.randomUUID();
+    brick = await mp.bricks().create('cardPayment', 'cardPaymentBrick_container', {
+      initialization: { amount },
+      customization: { visual: { style: { theme: 'default' } } },
+      callbacks: {
+        onReady: () => show('Introduce los datos de tu tarjeta para completar la donación.', 'info'),
+        onSubmit: async (data, additionalData) => {
+          show('Procesando tu donación...', 'info');
+          const { data: authData } = await supabase.auth.getSession();
+          const headers = { 'Content-Type': 'application/json' };
+          if (authData.session?.access_token) headers.Authorization = 'Bearer ' + authData.session.access_token;
 
-  const params = new URLSearchParams(window.location.search);
-  const paymentStatus = params.get('status');
-  if (paymentStatus === 'success') showStatus('Gracias por apoyar el proyecto. Mercado Pago informó que el pago fue aprobado.', 'success');
-  if (paymentStatus === 'pending') showStatus('Tu pago quedó pendiente. Mercado Pago actualizará su estado cuando corresponda.', 'info');
-  if (paymentStatus === 'failure') showStatus('El pago no se completó. Puedes intentarlo nuevamente.', 'error');
+          const response = await fetch(window.EMESupabaseConfig.url + '/functions/v1/create-mercadopago-order', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              amount,
+              external_reference: reference,
+              token: data.token,
+              payment_method_id: data.payment_method_id,
+              payment_type_id: additionalData?.paymentTypeId || data.payment_type_id,
+              installments: data.installments,
+              payer: {
+                email: data.payer?.email || '',
+                identification: data.payer?.identification || null
+              }
+            })
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            show(result.error || 'No se pudo procesar la donación.', 'error');
+            throw new Error(result.error || 'Error al crear la orden.');
+          }
+          if (result.status === 'approved') show('¡Gracias! Tu donación fue aprobada correctamente.', 'success');
+          else if (['pending','in_process','action_required','processing'].includes(result.status)) show('Tu donación quedó pendiente de confirmación. El Webhook actualizará su estado.', 'info');
+          else show(result.status_detail ? 'Mercado Pago no pudo completar la donación: ' + result.status_detail + '.' : 'Mercado Pago no pudo completar la donación.', 'error');
+        },
+        onError: (error) => { console.error('Card Payment Brick:', error); show('Ocurrió un error en el formulario de tarjeta. Revisa los datos.', 'error'); }
+      }
+    });
+  }
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const selectedAmount = parseDonationAmount(amount.value);
-    if (!Number.isFinite(selectedAmount) || selectedAmount < MIN_AMOUNT || selectedAmount > MAX_AMOUNT) {
-      showStatus(`Introduce un monto entre $${MIN_AMOUNT.toFixed(2)} y $${MAX_AMOUNT.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN.`, 'error');
+    const parsed = Math.round((Number(amountInput.value) + Number.EPSILON) * 100) / 100;
+    if (!Number.isFinite(parsed) || parsed < 0.01 || parsed > 10000000) {
+      show('Introduce un monto entre $0.01 y $10,000,000.00 MXN.', 'error');
       return;
     }
+    amount = parsed;
+    form.hidden = true;
+    paymentSection.hidden = false;
+    summary.textContent = 'Monto de la donación: $' + money(amount) + ' MXN';
+    try { await renderBrick(); paymentSection.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    catch (error) { console.error(error); form.hidden = false; paymentSection.hidden = true; show(error.message, 'error'); }
+  });
 
-    button.disabled = true;
-    button.textContent = 'Preparando pago...';
-    showStatus('Conectando con Mercado Pago...', 'info');
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const headers = { 'Content-Type': 'application/json' };
-      if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
-
-      const response = await fetch(`${window.EMESupabaseConfig.url}/functions/v1/create-mercadopago-preference`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ amount: selectedAmount })
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.init_point) throw new Error(data.error || 'No se pudo crear la preferencia de pago.');
-      window.location.href = data.init_point;
-    } catch (error) {
-      console.error(error);
-      showStatus('No se pudo iniciar el pago. Revisa la configuración de Mercado Pago en Supabase e inténtalo de nuevo.', 'error');
-      button.disabled = false;
-      button.textContent = 'Continuar con Mercado Pago';
-    }
+  changeButton?.addEventListener('click', async () => {
+    await unmount();
+    paymentSection.hidden = true;
+    form.hidden = false;
+    amountInput.focus();
   });
 })();
