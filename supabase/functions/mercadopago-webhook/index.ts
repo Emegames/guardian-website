@@ -20,7 +20,6 @@ Deno.serve(async (req) => {
   const accessToken = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN');
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-
   if (!secret || !accessToken || !supabaseUrl || !serviceRoleKey) return new Response('Webhook no configurado.', { status: 500 });
 
   const url = new URL(req.url);
@@ -43,31 +42,41 @@ Deno.serve(async (req) => {
   if (!constantTimeEqual(expected, v1)) return new Response('Firma inválida.', { status: 401 });
 
   const body = await req.json().catch(() => ({}));
-  if (body.type !== 'payment' && body.action !== 'payment.created' && body.action !== 'payment.updated') return new Response('ok', { status: 200 });
+  const type = String(body.type ?? body.action ?? '');
+  if (!['payment', 'order', 'payment.created', 'payment.updated', 'order.created', 'order.updated'].includes(type)) {
+    return new Response('ok', { status: 200 });
+  }
 
-  const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${encodeURIComponent(dataId)}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
+  const endpoint = type.startsWith('order')
+    ? `https://api.mercadopago.com/v1/orders/${encodeURIComponent(dataId)}`
+    : `https://api.mercadopago.com/v1/payments/${encodeURIComponent(dataId)}`;
+
+  const resourceResponse = await fetch(endpoint, {
+    headers: { Authorization: 'Bearer ' + accessToken },
   });
-  const payment = await paymentResponse.json().catch(() => ({}));
-  if (!paymentResponse.ok) return new Response('No se pudo consultar el pago.', { status: 502 });
+  const resource = await resourceResponse.json().catch(() => ({}));
+  if (!resourceResponse.ok) return new Response('No se pudo consultar Mercado Pago.', { status: 502 });
 
-  const externalReference = payment.external_reference ?? '';
-  if (!externalReference.startsWith('donation:')) return new Response('ok', { status: 200 });
+  const payment = type.startsWith('order') ? (resource?.transactions?.payments?.[0] ?? {}) : resource;
+  const externalReference = resource?.external_reference ?? payment?.external_reference ?? '';
+  if (!externalReference.startsWith('donation-')) return new Response('ok', { status: 200 });
 
   const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
   const { error } = await admin.from('donations').update({
-    status: payment.status ?? 'unknown',
-    payment_id: String(payment.id ?? dataId),
-    payment_status_detail: payment.status_detail ?? null,
-    payment_type: payment.payment_type_id ?? null,
-    payer_email: payment.payer?.email ?? null,
-    paid_at: payment.date_approved ?? null,
-    raw_payment: payment,
+    status: payment?.status ?? resource?.status ?? 'unknown',
+    order_id: resource?.id ? String(resource.id) : null,
+    payment_id: payment?.id ? String(payment.id) : null,
+    payment_status_detail: payment?.status_detail ?? resource?.status_detail ?? null,
+    payment_type: payment?.payment_method?.type ?? payment?.payment_type_id ?? null,
+    payer_email: payment?.payer?.email ?? resource?.payer?.email ?? null,
+    paid_at: payment?.date_approved ?? resource?.date_approved ?? null,
+    raw_payment: resource,
+    updated_at: new Date().toISOString(),
   }).eq('external_reference', externalReference);
 
   if (error) {
     console.error(error);
-    return new Response('No se pudo guardar el estado del pago.', { status: 500 });
+    return new Response('No se pudo guardar el estado.', { status: 500 });
   }
 
   return new Response('ok', { status: 200 });

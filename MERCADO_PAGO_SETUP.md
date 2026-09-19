@@ -1,57 +1,60 @@
-# Mercado Pago + EME GAMES
+# Mercado Pago + EME GAMES — Card Payment Brick + Orders API
 
-La web quedó preparada para Checkout Pro de Mercado Pago. El navegador nunca contiene el Access Token ni el secreto del Webhook.
+La página de donaciones usa **Card Payment Brick** para capturar y tokenizar los datos de la tarjeta en el navegador. El navegador envía el token a Supabase; el **Access Token de Mercado Pago solo existe en la Edge Function** que crea la Order.
 
-## 1. Supabase
+## 1. Mercado Pago
 
-1. Ejecuta en el SQL Editor el bloque de donaciones que se añadió al final de `SUPABASE_SETUP.sql`.
-2. Despliega las dos Edge Functions:
-   - `create-mercadopago-preference`
-   - `mercadopago-webhook`
-3. Configura estos secrets en Supabase:
-   - `MERCADOPAGO_ACCESS_TOKEN`: Access Token de la aplicación de Mercado Pago.
-   - `MERCADOPAGO_WEBHOOK_SECRET`: secreto generado en Mercado Pago en Webhooks.
-   - `SITE_URL`: dominio público de la web, por ejemplo `https://tudominio.com`.
+1. En **Tus integraciones**, crea o selecciona la aplicación que recibirá las donaciones.
+2. Copia su **Public Key** y colócala en `js/mercadopago-config.js`.
+3. Obtén el **Access Token** y guárdalo únicamente como secret de Supabase.
+4. Configura el Webhook para:
+   `https://TU-PROYECTO.supabase.co/functions/v1/mercadopago-webhook`
+5. Conserva el secreto de firma del Webhook como secret de Supabase.
 
-La página permite que cada visitante introduzca el monto que desea donar. El servidor acepta de $0.01 a $10,000,000.00 MXN y redondea a dos decimales. Mercado Pago puede rechazar importes que estén fuera de sus propios límites operativos.
+La Public Key sí puede estar en el frontend. **Nunca** pongas el Access Token o el secreto del Webhook en HTML/JS/CSS.
 
-Ejemplo con Supabase CLI:
+## 2. Supabase
+
+Ejecuta en SQL Editor el bloque actualizado de `SUPABASE_SETUP.sql`.
+
+Configura:
 
 ```bash
-supabase functions deploy create-mercadopago-preference
-supabase functions deploy mercadopago-webhook --no-verify-jwt
 supabase secrets set MERCADOPAGO_ACCESS_TOKEN="APP_USR_..."
 supabase secrets set MERCADOPAGO_WEBHOOK_SECRET="..."
-supabase secrets set SITE_URL="https://tudominio.com"
 ```
 
-## 2. Mercado Pago
+Despliega:
 
-1. Entra a **Mercado Pago** con la cuenta que recibirá las donaciones.
-2. Abre **Tus integraciones** y crea o selecciona una aplicación para este sitio.
-3. Copia el **Access Token de producción** cuando estés listo para cobrar dinero real.
-4. Configura el Webhook de pagos en la URL indicada abajo y conserva el secreto generado por Mercado Pago.
-5. Guarda ambos valores únicamente como **Secrets de Supabase**; nunca los pongas en HTML, CSS o JavaScript del navegador.
+```bash
+supabase functions deploy create-mercadopago-order
+supabase functions deploy mercadopago-webhook --no-verify-jwt
+```
 
-La API de Checkout Pro crea la preferencia desde el servidor y devuelve `init_point`, que es la URL a la que se redirige al usuario para completar el pago. Mercado Pago documenta que el Access Token debe enviarse en las solicitudes de creación de preferencias.
+## 3. Public Key
 
+Edita `js/mercadopago-config.js`:
 
+```js
+window.EMEMercadoPagoConfig = {
+  publicKey: "TU_PUBLIC_KEY"
+};
+```
 
-En **Tus integraciones** crea/usa una aplicación de Checkout Pro y usa sus credenciales productivas cuando vayas a cobrar de verdad.
+No sustituyas ese valor por el Access Token.
 
-Configura el Webhook productivo para la URL:
+## 4. Flujo implementado
 
-`https://TU-PROYECTO.supabase.co/functions/v1/mercadopago-webhook`
+1. El visitante introduce el monto.
+2. Se muestra Card Payment Brick directamente en la web.
+3. Mercado Pago tokeniza los datos sensibles de la tarjeta.
+4. El frontend envía token, método de pago, cuotas y datos mínimos del pagador a `create-mercadopago-order`.
+5. La Edge Function crea `POST /v1/orders` usando el Access Token.
+6. La respuesta inmediata muestra el estado disponible.
+7. El Webhook valida `x-signature`, consulta nuevamente la Order/Payment y actualiza `public.donations`.
 
-Activa las notificaciones de pagos. El código valida `x-signature` antes de guardar el estado del pago.
+Los datos completos de la tarjeta no se guardan en Supabase ni en GitHub.
 
-## 3. Flujo de la web
+## 5. Pruebas
 
-- La página `pages/donar.html` permite introducir un monto libre entre $0.01 y $10,000,000.00 MXN.
-- El frontend llama a `create-mercadopago-preference`.
-- La Edge Function crea una Preference en Mercado Pago y devuelve `init_point`.
-- El visitante termina el pago en Mercado Pago.
-- Mercado Pago devuelve al usuario a `donar.html?status=success|pending|failure`.
-- El Webhook actualiza el registro correspondiente en `public.donations`.
-
-No pegues el Access Token ni el secreto del Webhook en `js/`, HTML o CSS.
+Prueba primero con credenciales y tarjetas de prueba de Mercado Pago para México. Comprueba aprobados, rechazados, pendientes, cuotas y Webhooks antes de usar credenciales productivas.

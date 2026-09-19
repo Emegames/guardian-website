@@ -131,9 +131,8 @@ alter table public.profiles alter column updated_at set default now();
 
 -- =========================================
 -- EME GAMES - DONACIONES / MERCADO PAGO
+-- Card Payment Brick + Orders API
 -- =========================================
--- El proyecto ya utiliza public.donations. Añadimos únicamente
--- las columnas necesarias para Checkout Pro, sin reemplazar la tabla.
 alter table public.donations
   add column if not exists amount_mxn numeric(10,2),
   add column if not exists currency text not null default 'MXN',
@@ -141,6 +140,7 @@ alter table public.donations
   add column if not exists external_reference text,
   add column if not exists preference_id text,
   add column if not exists init_point text,
+  add column if not exists order_id text,
   add column if not exists payment_id text,
   add column if not exists payment_status_detail text,
   add column if not exists payment_type text,
@@ -152,9 +152,9 @@ alter table public.donations
 create unique index if not exists donations_external_reference_uidx
   on public.donations(external_reference)
   where external_reference is not null;
-
 create index if not exists donations_user_id_idx on public.donations(user_id);
 create index if not exists donations_status_idx on public.donations(status);
+create index if not exists donations_order_id_idx on public.donations(order_id);
 create index if not exists donations_payment_id_idx on public.donations(payment_id);
 
 grant select on table public.donations to authenticated;
