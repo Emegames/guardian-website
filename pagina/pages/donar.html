@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head><link rel="icon" type="image/png" href="../assets/images/eme-games-logo.png">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Donaciones — EME GAMES</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<div id="site-header"></div>
+<main>
+<section class="page-hero">
+  <div class="container">
+    <p class="eyebrow">EME GAMES</p>
+    <h1>DONACIONES</h1>
+    <p>Tu apoyo ayuda a que EME GAMES pueda continuar creando.</p>
+  </div>
+</section>
+<section class="content-section">
+  <div class="container">
+    <div class="form-wrap donation-page">
+      <img class="donation-logo" src="../assets/images/logo_donacion.jfif" alt="Apoya el proyecto">
+      <p class="donation-copy">Las donaciones ayudan al desarrollo de otros juegos independientes, así como para poder seguir con las mejoras de los juegos actuales.</p>
+
+      <div class="notice donation-security-note">
+        El pago se realiza dentro de esta página mediante Mercado Pago. Los datos sensibles de tu tarjeta son gestionados por el Card Payment Brick de Mercado Pago y no son almacenados por EME GAMES.
+      </div>
+
+      <div class="notice" data-donation-status hidden></div>
+
+      <form class="form donation-amount-form" data-donation-amount-form>
+        <div class="field">
+          <label for="donation-amount">¿Cuánto deseas donar? (MXN)</label>
+          <div class="money-input-wrap">
+            <span>$</span>
+            <input id="donation-amount" name="amount" type="number" inputmode="decimal" min="0.01" max="10000000" step="0.01" placeholder="0.00" required>
+          </div>
+          <p class="form-note">Puedes donar desde $0.01 hasta $10,000,000.00 MXN. Mercado Pago puede aplicar sus propios límites de operación.</p>
+        </div>
+        <button class="button button-primary" type="submit">Continuar con el pago</button>
+      </form>
+
+      <section class="card-payment-section" data-card-payment-section hidden>
+        <div class="payment-summary">
+          <div>
+            <span class="payment-summary-label">Monto de la donación</span>
+            <strong data-donation-summary>$0.00 MXN</strong>
+          </div>
+          <button class="button button-ghost" type="button" data-change-amount>Cambiar monto</button>
+        </div>
+        <h2>Datos de pago</h2>
+        <p class="form-note">Completa los datos de tu tarjeta. El formulario de tarjeta es proporcionado por Mercado Pago.</p>
+        <div id="cardPaymentBrick_container"></div>
+      </section>
+    </div>
+  </div>
+</section>
+</main>
+<div id="site-footer"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/mercadopago-config.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/page.js"></script>
+<script src="../js/donations.js"></script>
+</body>
+</html>

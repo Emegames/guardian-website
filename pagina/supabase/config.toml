@@ -1,0 +1,12 @@
+[functions.create-donation]
+verify_jwt = false
+
+[functions.process-mercadopago-payment]
+verify_jwt = false
+
+[functions.mercadopago-webhook]
+verify_jwt = false
+
+# La función antigua de Checkout Pro se conserva por compatibilidad con versiones previas.
+[functions.create-mercadopago-preference]
+verify_jwt = false

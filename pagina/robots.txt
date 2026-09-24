@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /pages/prueba-supabase.html
+
+Sitemap: https://TU-PROYECTO.vercel.app/sitemap.xml
