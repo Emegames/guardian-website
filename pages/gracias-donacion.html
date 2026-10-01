@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <link rel="icon" type="image/png" href="../assets/images/eme-games-logo.png">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Gracias por tu donación — EME GAMES</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<div id="site-header"></div>
+
+<main>
+<section class="page-hero">
+  <div class="container">
+    <p class="eyebrow">EME GAMES</p>
+    <h1>GRACIAS POR TU DONACIÓN</h1>
+    <p>Tu apoyo ayuda a que podamos seguir creando juegos independientes.</p>
+  </div>
+</section>
+
+<section class="content-section">
+  <div class="container">
+    <div class="form-wrap donation-page" style="max-width:760px;margin:0 auto;text-align:center">
+      <img class="donation-logo" src="../assets/images/logo_donacion.jfif" alt="Gracias por apoyar a EME GAMES">
+
+      <div class="notice" data-donation-verification>
+        Estamos confirmando tu donación con Mercado Pago...
+      </div>
+
+      <div data-donation-success hidden>
+        <h2>¡Donación confirmada!</h2>
+        <p>Muchas gracias por apoyar a EME GAMES. Tu donación fue procesada y acreditada correctamente.</p>
+
+        <div class="meta-grid" style="text-align:left;margin-top:30px">
+          <div><small>Monto</small><strong data-thanks-amount>—</strong></div>
+          <div><small>Estado</small><strong>Acreditada</strong></div>
+          <div><small>Referencia</small><strong data-thanks-donation>—</strong></div>
+          <div><small>Pago</small><strong data-thanks-payment>—</strong></div>
+        </div>
+
+        <p style="margin-top:28px;color:#a7adb6">
+          Guarda esta referencia si deseas conservar un comprobante de tu apoyo.
+        </p>
+
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px">
+          <a class="button button-primary" href="../index.html">Volver al inicio</a>
+          <a class="button button-ghost" href="donar.html">Hacer otra donación</a>
+        </div>
+      </div>
+
+      <div data-donation-pending hidden>
+        <h2>Estamos verificando tu donación</h2>
+        <p>El pago fue recibido, pero todavía no podemos confirmar la acreditación. Puedes esperar unos segundos y volver a intentarlo.</p>
+        <button class="button button-primary" type="button" data-retry-verification>Verificar de nuevo</button>
+      </div>
+
+      <div data-donation-error hidden>
+        <h2>No pudimos confirmar la donación</h2>
+        <p data-thanks-error>Por favor, vuelve a la página de donaciones o conserva los datos de tu pago.</p>
+        <a class="button button-primary" href="donar.html">Volver a donaciones</a>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/page.js"></script>
+<script>
+(() => {
+  'use strict';
+
+  const FUNCTIONS_URL =
+    'https://hbttkdkqgyqbluuabyhk.supabase.co/functions/v1';
+
+  const params = new URLSearchParams(window.location.search);
+  const donationId = String(params.get('donation_id') || '').trim();
+
+  const verification = document.querySelector('[data-donation-verification]');
+  const success = document.querySelector('[data-donation-success]');
+  const pending = document.querySelector('[data-donation-pending]');
+  const errorBox = document.querySelector('[data-donation-error]');
+  const errorText = document.querySelector('[data-thanks-error]');
+  const retry = document.querySelector('[data-retry-verification]');
+
+  const amountEl = document.querySelector('[data-thanks-amount]');
+  const donationEl = document.querySelector('[data-thanks-donation]');
+  const paymentEl = document.querySelector('[data-thanks-payment]');
+
+  function showOnly(element) {
+    [success, pending, errorBox].forEach((item) => {
+      if (item) item.hidden = item !== element;
+    });
+  }
+
+  async function verify() {
+    if (!donationId) {
+      verification.hidden = true;
+      showOnly(errorBox);
+      errorText.textContent = 'No se encontró el identificador de la donación.';
+      return;
+    }
+
+    verification.hidden = false;
+    verification.textContent = 'Estamos confirmando tu donación con Mercado Pago...';
+    [success, pending, errorBox].forEach((item) => { if (item) item.hidden = true; });
+
+    try {
+      const response = await fetch(`${FUNCTIONS_URL}/verify-donation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ donation_id: donationId })
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'No se pudo verificar la donación.');
+      }
+
+      const donation = result.donation || {};
+
+      if (result.verified) {
+        verification.hidden = true;
+        amountEl.textContent =
+          new Intl.NumberFormat('es-MX', {
+            style: 'currency',
+            currency: donation.currency || 'MXN'
+          }).format(Number(donation.amount_mxn || 0));
+        donationEl.textContent = donation.id || donationId;
+        paymentEl.textContent = donation.payment_id || 'Confirmado';
+        showOnly(success);
+      } else {
+        verification.hidden = true;
+        showOnly(pending);
+      }
+    } catch (err) {
+      console.error('Error verificando donación:', err);
+      verification.hidden = true;
+      errorText.textContent =
+        err?.message || 'No se pudo verificar la donación en este momento.';
+      showOnly(errorBox);
+    }
+  }
+
+  retry?.addEventListener('click', verify);
+  verify();
+})();
+</script>
+</body>
+</html>
