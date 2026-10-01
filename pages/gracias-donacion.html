@@ -176,7 +176,7 @@
 
 
       <!-- =========================================================
-           DONACIÓN FALLIDA / ERROR
+           DONACIÓN FALLIDA / RECHAZADA
            ========================================================= -->
 
       <div
@@ -201,8 +201,8 @@
         <h2>No pudimos confirmar la donación</h2>
 
         <p data-thanks-error>
-          Por favor, vuelve a la página de donaciones
-          o conserva los datos de tu pago.
+          El pago no pudo ser procesado.
+          Puedes volver a intentarlo con otro método de pago.
         </p>
 
         <a
@@ -251,17 +251,6 @@
     'https://hbttkdkqgyqbluuabyhk.supabase.co/functions/v1';
 
 
-  /*
-   * Intentamos reutilizar la clave pública que ya utiliza
-   * tu archivo supabase.js.
-   *
-   * NUNCA colocar aquí:
-   *
-   * - SERVICE_ROLE_KEY
-   * - MERCADOPAGO_ACCESS_TOKEN
-   * - ningún secreto privado
-   */
-
   const SUPABASE_PUBLIC_KEY =
     window.SUPABASE_ANON_KEY ||
     window.SUPABASE_PUBLISHABLE_KEY ||
@@ -269,7 +258,7 @@
 
 
   /* =============================================================
-     OBTENER DONATION_ID
+     OBTENER PARÁMETROS
      ============================================================= */
 
   const params =
@@ -282,6 +271,13 @@
     String(
       params.get('donation_id') || ''
     ).trim();
+
+
+  const requestedResult =
+    String(
+      params.get('result') || ''
+    ).trim()
+    .toLowerCase();
 
 
   /* =============================================================
@@ -365,30 +361,56 @@
 
 
   /* =============================================================
+     MOSTRAR DONACIÓN FALLIDA
+     ============================================================= */
+
+  function showFailedDonation(message) {
+
+    verification.hidden = true;
+
+    errorText.textContent =
+      message ||
+      'El pago no pudo ser procesado. Puedes volver a intentarlo con otro método de pago.';
+
+    /*
+     * Muestra:
+     *
+     * donativo_fallido.jfif
+     */
+    showOnly(errorBox);
+
+    console.log(
+      'Donación rechazada.'
+    );
+
+  }
+
+
+  /* =============================================================
      VERIFICAR DONACIÓN
      ============================================================= */
 
   async function verify() {
 
-    /*
-     * No existe donation_id.
-     */
-
     if (!donationId) {
 
       verification.hidden = true;
 
-      showOnly(errorBox);
-
-      errorText.textContent =
-        'No se encontró el identificador de la donación.';
+      showFailedDonation(
+        'No se encontró el identificador de la donación.'
+      );
 
       return;
     }
 
 
     /*
-     * Mostrar mensaje de verificación.
+     * Si donations.js ya sabe que Mercado Pago rechazó
+     * directamente el pago, podemos mostrar inmediatamente
+     * la pantalla de fallo.
+     *
+     * Aun así hacemos la consulta a Supabase para obtener
+     * el estado real almacenado.
      */
 
     verification.hidden = false;
@@ -422,11 +444,6 @@
       };
 
 
-      /*
-       * Si supabase.js expone la clave pública,
-       * la utilizamos.
-       */
-
       if (SUPABASE_PUBLIC_KEY) {
 
         headers.apikey =
@@ -439,7 +456,7 @@
 
 
       /* =========================================================
-         LLAMADA A VERIFY-DONATION
+         VERIFY-DONATION
          ========================================================= */
 
       const response =
@@ -458,10 +475,6 @@
         );
 
 
-      /* =========================================================
-         RESPUESTA
-         ========================================================= */
-
       const result =
         await response
           .json()
@@ -478,14 +491,20 @@
             result?.success,
 
           verified:
-            result?.verified
+            result?.verified,
+
+          status:
+            result?.donation?.status,
+
+          status_detail:
+            result?.donation?.status_detail
         }
       );
 
 
-      /*
-       * Error HTTP.
-       */
+      /* =========================================================
+         ERROR HTTP
+         ========================================================= */
 
       if (
         !response.ok ||
@@ -504,18 +523,32 @@
         result.donation || {};
 
 
+      const status =
+        String(
+          donation.status || ''
+        ).toLowerCase();
+
+
+      const statusDetail =
+        String(
+          donation.status_detail || ''
+        ).toLowerCase();
+
+
       /* =========================================================
          DONACIÓN EXITOSA
          ========================================================= */
 
-      if (result.verified) {
+      if (
+        result.verified === true ||
+        (
+          status === 'processed' &&
+          statusDetail === 'accredited'
+        )
+      ) {
 
         verification.hidden = true;
 
-
-        /*
-         * Mostrar monto.
-         */
 
         amountEl.textContent =
           new Intl.NumberFormat(
@@ -530,33 +563,21 @@
           ).format(
             Number(
               donation.amount_mxn ||
+              donation.amount ||
               0
             )
           );
 
-
-        /*
-         * Mostrar ID de donación.
-         */
 
         donationEl.textContent =
           donation.id ||
           donationId;
 
 
-        /*
-         * Mostrar ID del pago.
-         */
-
         paymentEl.textContent =
           donation.payment_id ||
           'Confirmado';
 
-
-        /*
-         * Esto hace visible el bloque que contiene
-         * donativo_exitoso.jfif
-         */
 
         showOnly(success);
 
@@ -565,6 +586,77 @@
           'Donación verificada correctamente.'
         );
 
+
+        return;
+      }
+
+
+      /* =========================================================
+         DONACIÓN RECHAZADA / FALLIDA
+         ========================================================= */
+
+      const failedStatuses = [
+        'rejected',
+        'failed',
+        'cancelled',
+        'canceled'
+      ];
+
+
+      const failedDetails = [
+        'rejected_by_issuer',
+        'rejected_by_bank',
+        'cc_rejected_other_reason',
+        'cc_rejected_call_for_authorize',
+        'cc_rejected_bad_filled_card_number',
+        'cc_rejected_bad_filled_date',
+        'cc_rejected_bad_filled_security_code',
+        'cc_rejected_insufficient_amount',
+        'cc_rejected_high_risk',
+        'cc_rejected_invalid_installments',
+        'cc_rejected_max_attempts',
+        'cc_rejected_card_disabled',
+        'cc_rejected_duplicated_payment',
+        'cc_rejected_blacklist'
+      ];
+
+
+      if (
+        failedStatuses.includes(status) ||
+        failedDetails.includes(statusDetail) ||
+        requestedResult === 'rejected'
+      ) {
+
+        let message =
+          'El pago no pudo ser procesado. Puedes volver a intentarlo con otro método de pago.';
+
+
+        if (
+          statusDetail ===
+          'cc_rejected_insufficient_amount'
+        ) {
+
+          message =
+            'El pago fue rechazado porque el importe disponible no es suficiente. Puedes volver a intentarlo con otro método de pago.';
+
+        } else if (
+          statusDetail ===
+          'rejected_by_issuer'
+        ) {
+
+          message =
+            'El banco o emisor de la tarjeta rechazó el pago. Puedes volver a intentarlo con otra tarjeta o método de pago.';
+
+        } else if (
+          statusDetail
+        ) {
+
+          message =
+            'Mercado Pago no pudo aprobar el pago. Puedes volver a intentarlo con otra tarjeta o método de pago.';
+        }
+
+
+        showFailedDonation(message);
 
         return;
       }
@@ -588,10 +680,6 @@
 
     catch (err) {
 
-      /* =========================================================
-         ERROR
-         ========================================================= */
-
       console.error(
         'Error verificando donación:',
         err
@@ -605,11 +693,6 @@
         err?.message ||
         'No se pudo verificar la donación en este momento.';
 
-
-      /*
-       * Esto hace visible el bloque que contiene
-       * donativo_fallido.jfif
-       */
 
       showOnly(errorBox);
 
@@ -629,7 +712,7 @@
 
 
   /* =============================================================
-     INICIAR VERIFICACIÓN
+     INICIAR
      ============================================================= */
 
   verify();
