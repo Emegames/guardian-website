@@ -16,13 +16,17 @@
 
 <section class="page-hero">
   <div class="container">
+
     <p class="eyebrow">EME GAMES</p>
 
-    <h1>RESULTADO DE TU DONACIÓN</h1>
+    <h1 data-donation-page-title>
+      RESULTADO DE TU DONACIÓN
+    </h1>
 
-    <p>
-      Gracias por apoyar a EME GAMES.
+    <p data-donation-page-subtitle>
+      Estamos verificando el estado de tu donación...
     </p>
+
   </div>
 </section>
 
@@ -354,6 +358,18 @@
     );
 
 
+  const pageTitle =
+    document.querySelector(
+      '[data-donation-page-title]'
+    );
+
+
+  const pageSubtitle =
+    document.querySelector(
+      '[data-donation-page-subtitle]'
+    );
+
+
   /* =============================================================
      MOSTRAR SOLO UN ESTADO
      ============================================================= */
@@ -377,12 +393,71 @@
 
 
   /* =============================================================
+     TÍTULO: DONACIÓN EXITOSA
+     ============================================================= */
+
+  function showSuccessfulTitle() {
+
+    if (pageTitle) {
+      pageTitle.textContent =
+        'GRACIAS POR TU DONACIÓN';
+    }
+
+    if (pageSubtitle) {
+      pageSubtitle.textContent =
+        'Tu apoyo ayuda a que podamos seguir creando juegos independientes.';
+    }
+
+  }
+
+
+  /* =============================================================
+     TÍTULO: DONACIÓN FALLIDA
+     ============================================================= */
+
+  function showFailedTitle() {
+
+    if (pageTitle) {
+      pageTitle.textContent =
+        '¡OHHH! ¡ALGO SALIÓ MAL!';
+    }
+
+    if (pageSubtitle) {
+      pageSubtitle.textContent =
+        'No pudimos completar tu donación en esta ocasión.';
+    }
+
+  }
+
+
+  /* =============================================================
+     TÍTULO: PENDIENTE
+     ============================================================= */
+
+  function showPendingTitle() {
+
+    if (pageTitle) {
+      pageTitle.textContent =
+        'RESULTADO DE TU DONACIÓN';
+    }
+
+    if (pageSubtitle) {
+      pageSubtitle.textContent =
+        'Estamos verificando el estado de tu donación...';
+    }
+
+  }
+
+
+  /* =============================================================
      MOSTRAR DONACIÓN FALLIDA
      ============================================================= */
 
   function showFailedDonation(message) {
 
     verification.hidden = true;
+
+    showFailedTitle();
 
     errorText.textContent =
       message ||
@@ -414,6 +489,8 @@
       return;
     }
 
+
+    showPendingTitle();
 
     verification.hidden = false;
 
@@ -551,6 +628,8 @@
 
         verification.hidden = true;
 
+        showSuccessfulTitle();
+
 
         amountEl.textContent =
           new Intl.NumberFormat(
@@ -670,6 +749,8 @@
 
       verification.hidden = true;
 
+      showPendingTitle();
+
       showOnly(pending);
 
 
@@ -690,6 +771,7 @@
 
       verification.hidden = true;
 
+      showFailedTitle();
 
       errorText.textContent =
         err?.message ||
