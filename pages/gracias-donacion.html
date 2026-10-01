@@ -4,7 +4,7 @@
   <link rel="icon" type="image/png" href="../assets/images/eme-games-logo.png">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Gracias por tu donación — EME GAMES</title>
+  <title>Resultado de tu donación — EME GAMES</title>
   <link rel="stylesheet" href="../styles.css">
 </head>
 
@@ -18,10 +18,10 @@
   <div class="container">
     <p class="eyebrow">EME GAMES</p>
 
-    <h1>GRACIAS POR TU DONACIÓN</h1>
+    <h1>RESULTADO DE TU DONACIÓN</h1>
 
     <p>
-      Tu apoyo ayuda a que podamos seguir creando juegos independientes.
+      Gracias por apoyar a EME GAMES.
     </p>
   </div>
 </section>
@@ -61,14 +61,14 @@
           class="donation-logo"
           src="../assets/images/donativo_exitoso.jfif"
           alt="Donación exitosa"
-         style="
-              display:block;
-              width:100%;
-              max-width:1400px;
-              height:auto;
-              margin:0 auto 25px;
-              border-radius:12px;
-            "
+          style="
+            display:block;
+            width:100%;
+            max-width:1400px;
+            height:auto;
+            margin:0 auto 25px;
+            border-radius:12px;
+          "
         >
 
         <h2>¡Donación confirmada!</h2>
@@ -187,7 +187,7 @@
         <img
           class="donation-logo"
           src="../assets/images/donativo_fallido.jfif"
-          alt="Donación no confirmada"
+          alt="Donación no completada"
           style="
             display:block;
             width:100%;
@@ -198,18 +198,34 @@
           "
         >
 
-        <h2>No pudimos confirmar la donación</h2>
+        <h2>¡OHHH! ¡ALGO SALIÓ MAL!</h2>
 
-        <p data-thanks-error>
+        <p
+          style="
+            font-size:1.08rem;
+            line-height:1.7;
+          "
+        >
+          Parece que la donación no pudo completarse esta vez.
+          No te preocupes, puedes intentarlo nuevamente.
+        </p>
+
+        <p
+          data-thanks-error
+          style="
+            margin-top:15px;
+            color:#a7adb6;
+          "
+        >
           El pago no pudo ser procesado.
-          Puedes volver a intentarlo con otro método de pago.
         </p>
 
         <a
           class="button button-primary"
           href="donar.html"
+          style="margin-top:20px"
         >
-          Volver a donaciones
+          Intentar nuevamente
         </a>
 
       </div>
@@ -372,11 +388,6 @@
       message ||
       'El pago no pudo ser procesado. Puedes volver a intentarlo con otro método de pago.';
 
-    /*
-     * Muestra:
-     *
-     * donativo_fallido.jfif
-     */
     showOnly(errorBox);
 
     console.log(
@@ -403,15 +414,6 @@
       return;
     }
 
-
-    /*
-     * Si donations.js ya sabe que Mercado Pago rechazó
-     * directamente el pago, podemos mostrar inmediatamente
-     * la pantalla de fallo.
-     *
-     * Aun así hacemos la consulta a Supabase para obtener
-     * el estado real almacenado.
-     */
 
     verification.hidden = false;
 
