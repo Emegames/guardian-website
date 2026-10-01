@@ -53,6 +53,38 @@
         }).format(amount);
     }
 
+    /*
+     * --------------------------------------------------
+     * ACTUALIZAR MONTO MOSTRADO EN LA PÁGINA
+     * --------------------------------------------------
+     *
+     * Busca el elemento que contiene:
+     *
+     * Monto de la donación $0.00 MXN
+     *
+     * y lo actualiza mientras el usuario escribe.
+     */
+    function updateDisplayedAmount(value) {
+        const elements = document.querySelectorAll(
+            '[data-donation-display-amount]'
+        );
+
+        const amount = parseAmount(value);
+
+        elements.forEach((element) => {
+            if (
+                amount !== null &&
+                Number.isFinite(amount)
+            ) {
+                element.textContent =
+                    `Monto de la donación ${formatAmount(amount)}`;
+            } else {
+                element.textContent =
+                    'Monto de la donación $0.00 MXN';
+            }
+        });
+    }
+
     function setMessage(message, type = '') {
         const elements = document.querySelectorAll(
             '[data-donation-message]'
@@ -310,15 +342,6 @@
                          * --------------------------------------------------
                          * PAGO RECHAZADO
                          * --------------------------------------------------
-                         *
-                         * El backend ya guardó la donación como "rejected".
-                         *
-                         * En lugar de solamente mostrar el error en esta
-                         * página, enviamos al usuario a:
-                         *
-                         * gracias-donacion.html?donation_id=...
-                         *
-                         * Allí se mostrará la pantalla de donación fallida.
                          */
                         if (!response.ok) {
                             const rejectedDonationId =
@@ -484,6 +507,10 @@
         if (amountInput) {
             amountInput.focus();
             amountInput.select?.();
+
+            updateDisplayedAmount(
+                amountInput.value
+            );
         }
 
         setMessage('', '');
@@ -541,13 +568,7 @@
             destroyCardPaymentBrick();
 
             /*
-             * IMPORTANTE:
-             *
-             * Cada vez que el usuario comienza una nueva donación
-             * se crea un nuevo donation_id.
-             *
-             * Esto evita reutilizar el mismo X-Idempotency-Key
-             * después de un pago rechazado.
+             * Cada nueva donación recibe un nuevo donation_id.
              */
             const donation =
                 await createDonation(
@@ -626,6 +647,32 @@
             'submit',
             handleDonationSubmit
         );
+
+        const amountInput =
+            form.querySelector(
+                '[name="amount"], [data-donation-amount]'
+            );
+
+        /*
+         * --------------------------------------------------
+         * ACTUALIZAR EL MONTO EN TIEMPO REAL
+         * --------------------------------------------------
+         */
+        if (amountInput) {
+            amountInput.addEventListener(
+                'input',
+                () => {
+                    updateDisplayedAmount(
+                        amountInput.value
+                    );
+                }
+            );
+
+            // Mostrar correctamente el valor inicial.
+            updateDisplayedAmount(
+                amountInput.value
+            );
+        }
 
         const changeAmountButton =
             document.querySelector(
