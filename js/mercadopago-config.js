@@ -4,5 +4,5 @@
 // La Public Key puede estar en el navegador.
 // NO coloques aquí el Access Token ni el secreto del webhook.
 window.EMEMercadoPagoConfig = {
-  publicKey: "APP_USR-3c3bace2-fea1-4a28-867b-bf7c678d4393"
+  publicKey: "APP_USR-f96703d0-5d03-41e8-b0af-99efef8ed505"
 };
