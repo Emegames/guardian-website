@@ -25,7 +25,7 @@
         El pago se realiza dentro de esta página mediante Mercado Pago. Los datos sensibles de tu tarjeta son gestionados por el Card Payment Brick de Mercado Pago y no son almacenados por EME GAMES.
       </div>
 
-      <div class="notice" data-donation-status hidden></div>
+      <div class="notice" data-donation-message data-donation-status hidden aria-live="polite"></div>
 
       <form class="form donation-amount-form" data-donation-amount-form>
         <div class="field">
@@ -34,9 +34,9 @@
             <span>$</span>
             <input id="donation-amount" name="amount" type="number" inputmode="decimal" min="0.01" max="10000000" step="0.01" placeholder="0.00" required>
           </div>
-          <p class="form-note">Puedes donar desde $0.01 hasta $10,000,000.00 MXN. Mercado Pago puede aplicar sus propios límites de operación.</p>
+          <p class="form-note">Puedes donar desde $0.01 hasta $10,000,000.00 MXN. El pago se procesa en una sola exhibición. Mercado Pago puede aplicar sus propios límites de operación.</p>
         </div>
-        <button class="button button-primary" type="submit">Continuar con el pago</button>
+        <button class="button button-primary" data-donation-submit type="submit">Continuar con el pago</button>
       </form>
 
       <section class="card-payment-section" data-card-payment-section hidden>
@@ -48,7 +48,7 @@
           <button class="button button-ghost" type="button" data-change-amount>Cambiar monto</button>
         </div>
         <h2>Datos de pago</h2>
-        <p class="form-note">Completa los datos de tu tarjeta. El formulario de tarjeta es proporcionado por Mercado Pago.</p>
+        <p class="form-note">Completa los datos de tu tarjeta. La donación se cobra en una sola exhibición y el formulario es proporcionado por Mercado Pago.</p>
         <div id="cardPaymentBrick_container"></div>
       </section>
     </div>
