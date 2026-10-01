@@ -154,16 +154,6 @@
         } catch {
             result = {};
         }
-
-        console.log(
-            'CREATE DONATION RESPONSE:',
-            {
-                http_status: response.status,
-                ok: response.ok,
-                result
-            }
-        );
-
         if (!response.ok) {
             throw new Error(
                 result.error ||
@@ -229,7 +219,9 @@
             customization: {
                 paymentMethods: {
                     creditCard: 'all',
-                    debitCard: 'all'
+                    debitCard: 'all',
+                    minInstallments: 1,
+                    maxInstallments: 1
                 },
 
                 visual: {
@@ -241,9 +233,7 @@
 
             callbacks: {
                 onReady: () => {
-                    console.log(
-                        'MP DEBUG Card Payment Brick listo'
-                    );
+                    
                 },
 
                 onSubmit: async (submission) => {
@@ -255,32 +245,6 @@
 
                     // No imprimimos el submission completo porque
                     // contiene el token de la tarjeta.
-
-                    console.log(
-                        'MP DEBUG payment_method_id:',
-                        formData?.payment_method_id
-                    );
-
-                    console.log(
-                        'MP DEBUG installments:',
-                        formData?.installments
-                    );
-
-                    console.log(
-                        'MP DEBUG transaction_amount:',
-                        formData?.transaction_amount
-                    );
-
-                    console.log(
-                        'MP DEBUG payer:',
-                        formData?.payer
-                    );
-
-                    console.log(
-                        'MP DEBUG token exists:',
-                        Boolean(formData?.token)
-                    );
-
                     if (!formData?.token) {
                         throw new Error(
                             'El Card Payment Brick no devolvió el token de la tarjeta.'
@@ -312,14 +276,13 @@
                                         formData: {
                                             token:
                                                 formData.token,
-                                            issuer_id:
-                                                formData.issuer_id,
                                             payment_method_id:
                                                 formData.payment_method_id,
-                                            transaction_amount:
-                                                formData.transaction_amount,
-                                            installments:
-                                                formData.installments,
+                                            payment_method_type:
+                                                formData.payment_type_id ||
+                                                formData.paymentTypeId ||
+                                                'credit_card',
+                                            installments: 1,
                                             payer:
                                                 formData.payer
                                         }
@@ -336,19 +299,6 @@
                             result = {};
                         }
 
-                        console.log(
-                            'MP PAYMENT RESPONSE DEBUG JSON:',
-                            JSON.stringify(
-                                {
-                                    http_status: response.status,
-                                    ok: response.ok,
-                                    result
-                                },
-                                null,
-                                2
-                            )
-                        );
-
                         if (!response.ok) {
                             throw new Error(
                                 result.error ||
@@ -357,25 +307,26 @@
                                 'Mercado Pago rechazó el pago.'
                             );
                         }
+                        const successfulStatus =
+                            result.status === 'processed' &&
+                            result.status_detail === 'accredited';
 
-                        console.log(
-                            'MP PAYMENT SUCCESS:',
-                            {
-                                donation_id:
-                                    result.donation_id,
-                                payment_id:
-                                    result.payment_id,
-                                status:
-                                    result.status,
-                                status_detail:
-                                    result.status_detail
-                            }
-                        );
+                        if (successfulStatus) {
+                            const params = new URLSearchParams({
+                                donation_id: String(donationId),
+                                amount: String(amount),
+                                payment_id: String(result.payment_id || ''),
+                                order_id: String(result.order_id || '')
+                            });
+
+                            window.location.href =
+                                `gracias-donacion.html?${params.toString()}`;
+
+                            return result;
+                        }
 
                         setMessage(
-                            result.status === 'approved'
-                                ? '¡Donación realizada correctamente!'
-                                : `Pago enviado. Estado: ${result.status || 'pendiente'}.`,
+                            `El pago fue recibido con estado "${result.status || 'pendiente'}". Estamos verificándolo.`,
                             'success'
                         );
 
@@ -416,6 +367,28 @@
                 'cardPaymentBrick_container',
                 settings
             );
+    }
+
+    function handleChangeAmount() {
+        destroyCardPaymentBrick();
+        showPaymentSection(false);
+
+        const form = document.querySelector(
+            '[data-donation-amount-form]'
+        );
+
+        const amountInput = form?.querySelector(
+            '[name="amount"], [data-donation-amount]'
+        );
+
+        if (amountInput) {
+            amountInput.focus();
+            amountInput.select?.();
+        }
+
+        setMessage('', '');
+        currentDonationId = null;
+        currentAmount = null;
     }
 
     async function handleDonationSubmit(event) {
@@ -541,22 +514,19 @@
             handleDonationSubmit
         );
 
+        const changeAmountButton = document.querySelector(
+            '[data-change-amount]'
+        );
+
+        changeAmountButton?.addEventListener(
+            'click',
+            handleChangeAmount
+        );
+
         showPaymentSection(false);
 
         console.log(
             'Donations.js inicializado correctamente.'
-        );
-
-        console.log(
-            'Supabase Functions URL:',
-            SUPABASE_FUNCTIONS_URL
-        );
-
-        console.log(
-            'Mercado Pago Public Key:',
-            config.publicKey
-                ? 'configurada'
-                : 'NO configurada'
         );
     }
 
