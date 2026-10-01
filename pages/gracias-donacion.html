@@ -7,150 +7,635 @@
   <title>Gracias por tu donación — EME GAMES</title>
   <link rel="stylesheet" href="../styles.css">
 </head>
+
 <body>
+
 <div id="site-header"></div>
 
 <main>
+
 <section class="page-hero">
   <div class="container">
     <p class="eyebrow">EME GAMES</p>
+
     <h1>GRACIAS POR TU DONACIÓN</h1>
-    <p>Tu apoyo ayuda a que podamos seguir creando juegos independientes.</p>
+
+    <p>
+      Tu apoyo ayuda a que podamos seguir creando juegos independientes.
+    </p>
   </div>
 </section>
 
-<section class="content-section">
-  <div class="container">
-    <div class="form-wrap donation-page" style="max-width:760px;margin:0 auto;text-align:center">
-      <img class="donation-logo" src="../assets/images/logo_donacion.jfif" alt="Gracias por apoyar a EME GAMES">
 
-      <div class="notice" data-donation-verification>
+<section class="content-section">
+
+  <div class="container">
+
+    <div
+      class="form-wrap donation-page"
+      style="max-width:760px;margin:0 auto;text-align:center"
+    >
+
+      <!-- =========================================================
+           ESTADO DE VERIFICACIÓN
+           ========================================================= -->
+
+      <div
+        class="notice"
+        data-donation-verification
+      >
         Estamos confirmando tu donación con Mercado Pago...
       </div>
 
-      <div data-donation-success hidden>
+
+      <!-- =========================================================
+           DONACIÓN EXITOSA
+           ========================================================= -->
+
+      <div
+        data-donation-success
+        hidden
+      >
+
+        <img
+          class="donation-logo"
+          src="../assets/images/donativo_exitoso.jfif"
+          alt="Donación exitosa"
+          style="
+            display:block;
+            max-width:320px;
+            width:100%;
+            height:auto;
+            margin:0 auto 25px;
+            border-radius:12px;
+          "
+        >
+
         <h2>¡Donación confirmada!</h2>
-        <p>Muchas gracias por apoyar a EME GAMES. Tu donación fue procesada y acreditada correctamente.</p>
 
-        <div class="meta-grid" style="text-align:left;margin-top:30px">
-          <div><small>Monto</small><strong data-thanks-amount>—</strong></div>
-          <div><small>Estado</small><strong>Acreditada</strong></div>
-          <div><small>Referencia</small><strong data-thanks-donation>—</strong></div>
-          <div><small>Pago</small><strong data-thanks-payment>—</strong></div>
-        </div>
-
-        <p style="margin-top:28px;color:#a7adb6">
-          Guarda esta referencia si deseas conservar un comprobante de tu apoyo.
+        <p>
+          Muchas gracias por apoyar a EME GAMES.
+          Tu donación fue procesada y acreditada correctamente.
         </p>
 
-        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px">
-          <a class="button button-primary" href="../index.html">Volver al inicio</a>
-          <a class="button button-ghost" href="donar.html">Hacer otra donación</a>
+
+        <div
+          class="meta-grid"
+          style="text-align:left;margin-top:30px"
+        >
+
+          <div>
+            <small>Monto</small>
+            <strong data-thanks-amount>—</strong>
+          </div>
+
+          <div>
+            <small>Estado</small>
+            <strong>Acreditada</strong>
+          </div>
+
+          <div>
+            <small>Referencia</small>
+            <strong data-thanks-donation>—</strong>
+          </div>
+
+          <div>
+            <small>Pago</small>
+            <strong data-thanks-payment>—</strong>
+          </div>
+
         </div>
+
+
+        <p
+          style="
+            margin-top:28px;
+            color:#a7adb6
+          "
+        >
+          Guarda esta referencia si deseas conservar
+          un comprobante de tu apoyo.
+        </p>
+
+
+        <div
+          style="
+            display:flex;
+            gap:12px;
+            justify-content:center;
+            flex-wrap:wrap;
+            margin-top:24px
+          "
+        >
+
+          <a
+            class="button button-primary"
+            href="../index.html"
+          >
+            Volver al inicio
+          </a>
+
+          <a
+            class="button button-ghost"
+            href="donar.html"
+          >
+            Hacer otra donación
+          </a>
+
+        </div>
+
       </div>
 
-      <div data-donation-pending hidden>
+
+      <!-- =========================================================
+           DONACIÓN PENDIENTE
+           ========================================================= -->
+
+      <div
+        data-donation-pending
+        hidden
+      >
+
         <h2>Estamos verificando tu donación</h2>
-        <p>El pago fue recibido, pero todavía no podemos confirmar la acreditación. Puedes esperar unos segundos y volver a intentarlo.</p>
-        <button class="button button-primary" type="button" data-retry-verification>Verificar de nuevo</button>
+
+        <p>
+          El pago fue recibido, pero todavía no podemos confirmar
+          la acreditación. Puedes esperar unos segundos y volver
+          a intentarlo.
+        </p>
+
+        <button
+          class="button button-primary"
+          type="button"
+          data-retry-verification
+        >
+          Verificar de nuevo
+        </button>
+
       </div>
 
-      <div data-donation-error hidden>
+
+      <!-- =========================================================
+           DONACIÓN FALLIDA / ERROR
+           ========================================================= -->
+
+      <div
+        data-donation-error
+        hidden
+      >
+
+        <img
+          class="donation-logo"
+          src="../assets/images/donativo_fallido.jfif"
+          alt="Donación no confirmada"
+          style="
+            display:block;
+            max-width:320px;
+            width:100%;
+            height:auto;
+            margin:0 auto 25px;
+            border-radius:12px;
+          "
+        >
+
         <h2>No pudimos confirmar la donación</h2>
-        <p data-thanks-error>Por favor, vuelve a la página de donaciones o conserva los datos de tu pago.</p>
-        <a class="button button-primary" href="donar.html">Volver a donaciones</a>
+
+        <p data-thanks-error>
+          Por favor, vuelve a la página de donaciones
+          o conserva los datos de tu pago.
+        </p>
+
+        <a
+          class="button button-primary"
+          href="donar.html"
+        >
+          Volver a donaciones
+        </a>
+
       </div>
+
     </div>
+
   </div>
+
 </section>
+
 </main>
+
 
 <div id="site-footer"></div>
 
+
+<!-- =============================================================
+     SUPABASE
+     ============================================================= -->
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script src="../js/supabase.js"></script>
 <script src="../js/auth.js"></script>
 <script src="../js/page.js"></script>
+
+
 <script>
 (() => {
+
   'use strict';
+
+
+  /* =============================================================
+     CONFIGURACIÓN
+     ============================================================= */
 
   const FUNCTIONS_URL =
     'https://hbttkdkqgyqbluuabyhk.supabase.co/functions/v1';
 
-  const params = new URLSearchParams(window.location.search);
-  const donationId = String(params.get('donation_id') || '').trim();
 
-  const verification = document.querySelector('[data-donation-verification]');
-  const success = document.querySelector('[data-donation-success]');
-  const pending = document.querySelector('[data-donation-pending]');
-  const errorBox = document.querySelector('[data-donation-error]');
-  const errorText = document.querySelector('[data-thanks-error]');
-  const retry = document.querySelector('[data-retry-verification]');
+  /*
+   * Intentamos reutilizar la clave pública que ya utiliza
+   * tu archivo supabase.js.
+   *
+   * NUNCA colocar aquí:
+   *
+   * - SERVICE_ROLE_KEY
+   * - MERCADOPAGO_ACCESS_TOKEN
+   * - ningún secreto privado
+   */
 
-  const amountEl = document.querySelector('[data-thanks-amount]');
-  const donationEl = document.querySelector('[data-thanks-donation]');
-  const paymentEl = document.querySelector('[data-thanks-payment]');
+  const SUPABASE_PUBLIC_KEY =
+    window.SUPABASE_ANON_KEY ||
+    window.SUPABASE_PUBLISHABLE_KEY ||
+    '';
+
+
+  /* =============================================================
+     OBTENER DONATION_ID
+     ============================================================= */
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+
+  const donationId =
+    String(
+      params.get('donation_id') || ''
+    ).trim();
+
+
+  /* =============================================================
+     ELEMENTOS
+     ============================================================= */
+
+  const verification =
+    document.querySelector(
+      '[data-donation-verification]'
+    );
+
+
+  const success =
+    document.querySelector(
+      '[data-donation-success]'
+    );
+
+
+  const pending =
+    document.querySelector(
+      '[data-donation-pending]'
+    );
+
+
+  const errorBox =
+    document.querySelector(
+      '[data-donation-error]'
+    );
+
+
+  const errorText =
+    document.querySelector(
+      '[data-thanks-error]'
+    );
+
+
+  const retry =
+    document.querySelector(
+      '[data-retry-verification]'
+    );
+
+
+  const amountEl =
+    document.querySelector(
+      '[data-thanks-amount]'
+    );
+
+
+  const donationEl =
+    document.querySelector(
+      '[data-thanks-donation]'
+    );
+
+
+  const paymentEl =
+    document.querySelector(
+      '[data-thanks-payment]'
+    );
+
+
+  /* =============================================================
+     MOSTRAR SOLO UN ESTADO
+     ============================================================= */
 
   function showOnly(element) {
-    [success, pending, errorBox].forEach((item) => {
-      if (item) item.hidden = item !== element;
+
+    [
+      success,
+      pending,
+      errorBox
+    ].forEach((item) => {
+
+      if (item) {
+        item.hidden =
+          item !== element;
+      }
+
     });
+
   }
 
+
+  /* =============================================================
+     VERIFICAR DONACIÓN
+     ============================================================= */
+
   async function verify() {
+
+    /*
+     * No existe donation_id.
+     */
+
     if (!donationId) {
+
       verification.hidden = true;
+
       showOnly(errorBox);
-      errorText.textContent = 'No se encontró el identificador de la donación.';
+
+      errorText.textContent =
+        'No se encontró el identificador de la donación.';
+
       return;
     }
 
+
+    /*
+     * Mostrar mensaje de verificación.
+     */
+
     verification.hidden = false;
-    verification.textContent = 'Estamos confirmando tu donación con Mercado Pago...';
-    [success, pending, errorBox].forEach((item) => { if (item) item.hidden = true; });
+
+    verification.textContent =
+      'Estamos confirmando tu donación con Mercado Pago...';
+
+
+    [
+      success,
+      pending,
+      errorBox
+    ].forEach((item) => {
+
+      if (item) {
+        item.hidden = true;
+      }
+
+    });
+
 
     try {
-      const response = await fetch(`${FUNCTIONS_URL}/verify-donation`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ donation_id: donationId })
-      });
 
-      const result = await response.json().catch(() => ({}));
+      /* =========================================================
+         HEADERS
+         ========================================================= */
 
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'No se pudo verificar la donación.');
+      const headers = {
+        'Content-Type':
+          'application/json'
+      };
+
+
+      /*
+       * Si supabase.js expone la clave pública,
+       * la utilizamos.
+       */
+
+      if (SUPABASE_PUBLIC_KEY) {
+
+        headers.apikey =
+          SUPABASE_PUBLIC_KEY;
+
+        headers.Authorization =
+          `Bearer ${SUPABASE_PUBLIC_KEY}`;
+
       }
 
-      const donation = result.donation || {};
+
+      /* =========================================================
+         LLAMADA A VERIFY-DONATION
+         ========================================================= */
+
+      const response =
+        await fetch(
+          `${FUNCTIONS_URL}/verify-donation`,
+          {
+            method: 'POST',
+
+            headers,
+
+            body: JSON.stringify({
+              donation_id:
+                donationId
+            })
+          }
+        );
+
+
+      /* =========================================================
+         RESPUESTA
+         ========================================================= */
+
+      const result =
+        await response
+          .json()
+          .catch(() => ({}));
+
+
+      console.log(
+        'verify-donation response:',
+        {
+          http_status:
+            response.status,
+
+          success:
+            result?.success,
+
+          verified:
+            result?.verified
+        }
+      );
+
+
+      /*
+       * Error HTTP.
+       */
+
+      if (
+        !response.ok ||
+        !result.success
+      ) {
+
+        throw new Error(
+          result.error ||
+          `No se pudo verificar la donación. HTTP ${response.status}`
+        );
+
+      }
+
+
+      const donation =
+        result.donation || {};
+
+
+      /* =========================================================
+         DONACIÓN EXITOSA
+         ========================================================= */
 
       if (result.verified) {
+
         verification.hidden = true;
+
+
+        /*
+         * Mostrar monto.
+         */
+
         amountEl.textContent =
-          new Intl.NumberFormat('es-MX', {
-            style: 'currency',
-            currency: donation.currency || 'MXN'
-          }).format(Number(donation.amount_mxn || 0));
-        donationEl.textContent = donation.id || donationId;
-        paymentEl.textContent = donation.payment_id || 'Confirmado';
+          new Intl.NumberFormat(
+            'es-MX',
+            {
+              style: 'currency',
+
+              currency:
+                donation.currency ||
+                'MXN'
+            }
+          ).format(
+            Number(
+              donation.amount_mxn ||
+              0
+            )
+          );
+
+
+        /*
+         * Mostrar ID de donación.
+         */
+
+        donationEl.textContent =
+          donation.id ||
+          donationId;
+
+
+        /*
+         * Mostrar ID del pago.
+         */
+
+        paymentEl.textContent =
+          donation.payment_id ||
+          'Confirmado';
+
+
+        /*
+         * Esto hace visible el bloque que contiene
+         * donativo_exitoso.jfif
+         */
+
         showOnly(success);
-      } else {
-        verification.hidden = true;
-        showOnly(pending);
+
+
+        console.log(
+          'Donación verificada correctamente.'
+        );
+
+
+        return;
       }
-    } catch (err) {
-      console.error('Error verificando donación:', err);
+
+
+      /* =========================================================
+         DONACIÓN PENDIENTE
+         ========================================================= */
+
       verification.hidden = true;
-      errorText.textContent =
-        err?.message || 'No se pudo verificar la donación en este momento.';
-      showOnly(errorBox);
+
+      showOnly(pending);
+
+
+      console.log(
+        'Donación todavía pendiente:',
+        donation
+      );
+
     }
+
+    catch (err) {
+
+      /* =========================================================
+         ERROR
+         ========================================================= */
+
+      console.error(
+        'Error verificando donación:',
+        err
+      );
+
+
+      verification.hidden = true;
+
+
+      errorText.textContent =
+        err?.message ||
+        'No se pudo verificar la donación en este momento.';
+
+
+      /*
+       * Esto hace visible el bloque que contiene
+       * donativo_fallido.jfif
+       */
+
+      showOnly(errorBox);
+
+    }
+
   }
 
-  retry?.addEventListener('click', verify);
+
+  /* =============================================================
+     BOTÓN REINTENTAR
+     ============================================================= */
+
+  retry?.addEventListener(
+    'click',
+    verify
+  );
+
+
+  /* =============================================================
+     INICIAR VERIFICACIÓN
+     ============================================================= */
+
   verify();
+
 })();
 </script>
+
 </body>
 </html>
