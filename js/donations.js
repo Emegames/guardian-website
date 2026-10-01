@@ -154,6 +154,7 @@
         } catch {
             result = {};
         }
+
         if (!response.ok) {
             throw new Error(
                 result.error ||
@@ -233,7 +234,7 @@
 
             callbacks: {
                 onReady: () => {
-                    
+                    // Card Payment Brick listo.
                 },
 
                 onSubmit: async (submission) => {
@@ -243,8 +244,8 @@
                         submission ||
                         {};
 
-                    // No imprimimos el submission completo porque
-                    // contiene el token de la tarjeta.
+                    // Nunca imprimimos submission completo:
+                    // contiene información sensible de pago.
                     if (!formData?.token) {
                         throw new Error(
                             'El Card Payment Brick no devolvió el token de la tarjeta.'
@@ -271,18 +272,24 @@
                                     body: JSON.stringify({
                                         donation_id:
                                             donationId,
+
                                         amount:
                                             amount,
+
                                         formData: {
                                             token:
                                                 formData.token,
+
                                             payment_method_id:
                                                 formData.payment_method_id,
+
                                             payment_method_type:
                                                 formData.payment_type_id ||
                                                 formData.paymentTypeId ||
                                                 'credit_card',
+
                                             installments: 1,
+
                                             payer:
                                                 formData.payer
                                         }
@@ -299,25 +306,90 @@
                             result = {};
                         }
 
+                        /*
+                         * --------------------------------------------------
+                         * PAGO RECHAZADO
+                         * --------------------------------------------------
+                         *
+                         * El backend ya guardó la donación como "rejected".
+                         *
+                         * En lugar de solamente mostrar el error en esta
+                         * página, enviamos al usuario a:
+                         *
+                         * gracias-donacion.html?donation_id=...
+                         *
+                         * Allí se mostrará la pantalla de donación fallida.
+                         */
                         if (!response.ok) {
-                            throw new Error(
-                                result.error ||
-                                result.message ||
-                                result.status_detail ||
-                                'Mercado Pago rechazó el pago.'
-                            );
+                            const rejectedDonationId =
+                                result.donation_id ||
+                                donationId;
+
+                            const errorParams =
+                                new URLSearchParams({
+                                    donation_id:
+                                        String(
+                                            rejectedDonationId
+                                        ),
+
+                                    amount:
+                                        String(amount),
+
+                                    payment_id:
+                                        String(
+                                            result.payment_id ||
+                                            ''
+                                        ),
+
+                                    order_id:
+                                        String(
+                                            result.order_id ||
+                                            ''
+                                        ),
+
+                                    result:
+                                        'rejected'
+                                });
+
+                            window.location.href =
+                                `gracias-donacion.html?${errorParams.toString()}`;
+
+                            return result;
                         }
+
+                        /*
+                         * --------------------------------------------------
+                         * PAGO EXITOSO
+                         * --------------------------------------------------
+                         */
                         const successfulStatus =
                             result.status === 'processed' &&
                             result.status_detail === 'accredited';
 
                         if (successfulStatus) {
-                            const params = new URLSearchParams({
-                                donation_id: String(donationId),
-                                amount: String(amount),
-                                payment_id: String(result.payment_id || ''),
-                                order_id: String(result.order_id || '')
-                            });
+                            const params =
+                                new URLSearchParams({
+                                    donation_id:
+                                        String(donationId),
+
+                                    amount:
+                                        String(amount),
+
+                                    payment_id:
+                                        String(
+                                            result.payment_id ||
+                                            ''
+                                        ),
+
+                                    order_id:
+                                        String(
+                                            result.order_id ||
+                                            ''
+                                        ),
+
+                                    result:
+                                        'success'
+                                });
 
                             window.location.href =
                                 `gracias-donacion.html?${params.toString()}`;
@@ -325,12 +397,40 @@
                             return result;
                         }
 
-                        setMessage(
-                            `El pago fue recibido con estado "${result.status || 'pendiente'}". Estamos verificándolo.`,
-                            'success'
-                        );
+                        /*
+                         * --------------------------------------------------
+                         * PAGO PENDIENTE / EN VERIFICACIÓN
+                         * --------------------------------------------------
+                         */
+                        const pendingParams =
+                            new URLSearchParams({
+                                donation_id:
+                                    String(donationId),
+
+                                amount:
+                                    String(amount),
+
+                                payment_id:
+                                    String(
+                                        result.payment_id ||
+                                        ''
+                                    ),
+
+                                order_id:
+                                    String(
+                                        result.order_id ||
+                                        ''
+                                    ),
+
+                                result:
+                                    'pending'
+                            });
+
+                        window.location.href =
+                            `gracias-donacion.html?${pendingParams.toString()}`;
 
                         return result;
+
                     } catch (error) {
                         console.error(
                             'Error procesando el pago:',
@@ -440,6 +540,15 @@
             showPaymentSection(false);
             destroyCardPaymentBrick();
 
+            /*
+             * IMPORTANTE:
+             *
+             * Cada vez que el usuario comienza una nueva donación
+             * se crea un nuevo donation_id.
+             *
+             * Esto evita reutilizar el mismo X-Idempotency-Key
+             * después de un pago rechazado.
+             */
             const donation =
                 await createDonation(
                     amount
@@ -456,8 +565,10 @@
                 {
                     donation_id:
                         donation.donation_id,
+
                     amount:
                         donation.amount,
+
                     external_reference:
                         donation.external_reference
                 }
@@ -476,6 +587,7 @@
                 amount,
                 currentDonationId
             );
+
         } catch (error) {
             console.error(
                 'Error preparando la donación:',
@@ -490,6 +602,7 @@
 
             showPaymentSection(false);
             destroyCardPaymentBrick();
+
         } finally {
             setSubmitButtonDisabled(false);
         }
@@ -514,9 +627,10 @@
             handleDonationSubmit
         );
 
-        const changeAmountButton = document.querySelector(
-            '[data-change-amount]'
-        );
+        const changeAmountButton =
+            document.querySelector(
+                '[data-change-amount]'
+            );
 
         changeAmountButton?.addEventListener(
             'click',
